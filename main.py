@@ -13,12 +13,12 @@ def zy_guan_li():
             items.append(str(item[0])+"|"+item[1])
         label = gr.Label(value=f"{shi_jian}已检查",show_label=False)
         select = gr.Dropdown(choices=items, multiselect=True, label="选择一个姓名")
-        cbtn = gr.Button("检查")
+        cbtn = gr.Button("检查",variant="huggingface")
         cout = gr.Textbox(label="结果")
 
     with gr.Row():
         name_input = gr.Textbox(label="输入姓名")
-        shi_jian = gr.DateTime(label="输入提交时间", include_time=False)
+        shi_jian = gr.DateTime(label="输入提交时间", include_time=False,type="string")
         query_zy_button = gr.Button("作业查询")
     # delete_button = gr.Button("删除")
 
@@ -29,9 +29,6 @@ def zy_guan_li():
 
     cbtn.click(fn=dbsave.zy_save_to_db, inputs=[select, label, shi_jian], outputs=[cout, query_output])
     query_zy_button.click(fn=dbsave.zy_query_db, inputs=[name_input, shi_jian], outputs=query_output)
-
-def process_selection(key, value):
-    return f"你选择的Key: {key},值是: {value}", key, value
 
 
 def xs_guan_li():
@@ -45,7 +42,8 @@ def xs_guan_li():
     query_output = gr.Dataframe(
         headers=["ID", "姓名"],
         value=dbsave.xs_query_db(""),
-        col_count=2)
+        col_count=2,
+        column_widths=[100,100])
 
     # 绑定按钮事件
     sbtn.click(fn=dbsave.xs_save_to_db, inputs=name_input, outputs=[output, query_output])
