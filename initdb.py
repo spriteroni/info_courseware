@@ -4,12 +4,20 @@ import sqlite3
 conn = sqlite3.connect('gradio_app.db')
 cursor = conn.cursor()
 
-# 创建表
+# 作业表
 cursor.execute('''
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS zuoye (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    age INTEGER NOT NULL
+    jian_cha TEXT NOT NULL,
+    xue_hao INTEGER NOT NULL,
+    shi_jian TEXT NOT NULL
+)
+''')
+# 学生信息
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS xuesheng (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    xing_ming TEXT NOT NULL
 )
 ''')
 
