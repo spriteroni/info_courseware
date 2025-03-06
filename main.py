@@ -11,24 +11,34 @@ def zy_guan_li():
         items = []
         for item in options:
             items.append(str(item[0])+"|"+item[1])
-        label = gr.Label(value=f"{shi_jian}已检查",show_label=False)
+
+        label = gr.Label(value=dbsave.tong_ji(shi_jian))
+        hidden_label= gr.Label(value=f"{shi_jian}已提交",visible=False)
         select = gr.Dropdown(choices=items, multiselect=True, label="选择一个姓名")
-        cbtn = gr.Button("检查",variant="huggingface")
         cout = gr.Textbox(label="结果")
+        cbtn = gr.Button("提交",variant="huggingface")
 
     with gr.Row():
-        name_input = gr.Textbox(label="输入姓名")
-        shi_jian = gr.DateTime(label="输入提交时间", include_time=False,type="string")
-        query_zy_button = gr.Button("作业查询")
+        with gr.Column(scale=1):
+            name_input = gr.Textbox(label="输入姓名")
+        with gr.Column(scale=1):
+            shi_jian = gr.DateTime(label="输入提交时间", include_time=False,type="string")
+        with gr.Column(scale=1):
+            with gr.Row():
+                query_zy_button = gr.Button("提交查询")
+            with gr.Row():
+                query_wj_button = gr.Button("未交查询")
+
     # delete_button = gr.Button("删除")
 
     query_output = gr.Dataframe(
-        headers=["ID", "姓名", "作业是否检查"],
+        headers=["ID", "姓名", "作业是否提交"],
         value=dbsave.zy_query_db("", ""),
         col_count=3)
 
-    cbtn.click(fn=dbsave.zy_save_to_db, inputs=[select, label, shi_jian], outputs=[cout, query_output])
+    cbtn.click(fn=dbsave.zy_save_to_db, inputs=[select, hidden_label, shi_jian], outputs=[cout, label, query_output])
     query_zy_button.click(fn=dbsave.zy_query_db, inputs=[name_input, shi_jian], outputs=query_output)
+    query_wj_button.click(fn=dbsave.wj_query_db,inputs=[shi_jian], outputs=query_output)
 
 
 def xs_guan_li():

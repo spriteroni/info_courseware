@@ -14,18 +14,29 @@ def zy_save_to_db(xs, jian_cha, shi_jian):
         item = items.split("|")
         count = cursor.execute('SELECT COUNT(*) FROM zuoye WHERE xue_hao = ? AND shi_jian = ? AND jian_cha= ? ',(item[0], shi_jian, jian_cha))
         if count.fetchone()[0] > 0:
-            out_str += f"{item[1]} 于 {shi_jian} 已检查！\n"
+            out_str += f"{item[1]} 于 {shi_jian} 已提交！\n"
             continue
         cursor.execute('INSERT INTO zuoye (jian_cha,xue_hao,shi_jian) VALUES (?, ?, ?)',
                    (jian_cha, item[0], shi_jian))
-        out_str += f"{item[1]} 于 {shi_jian} 已检查！\n"
+        out_str += f"{item[1]} 于 {shi_jian} 已提交！\n"
     conn.commit()
     conn.close()
 
-    return out_str, zy_query_db("", shi_jian)
+    return out_str, tong_ji(shi_jian), zy_query_db("", shi_jian)
 
+def tong_ji(shi_jian):
+    conn = sqlite3.connect('gradio_app.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT count(id) FROM zuoye WHERE shi_jian = ? AND jian_cha !=""', (shi_jian,))
+    zy_count = cursor.fetchone()
+    cursor.execute('SELECT count(id) FROM xuesheng')
+    xs_count = cursor.fetchone()
+    conn.commit()
+    conn.close()
+    res = f"{shi_jian}已提交{zy_count[0]},未提交{xs_count[0] - zy_count[0]}"
+    return res
 
-# 从 SQLite 数据库中查询数据
+# 作业查询
 def zy_query_db(xing_ming, shi_jian):
     conn = sqlite3.connect('gradio_app.db')
     cursor = conn.cursor()
@@ -43,8 +54,26 @@ def zy_query_db(xing_ming, shi_jian):
         cursor.execute(sql, (shi_jian,))
     rows = cursor.fetchall()
     conn.close()
-    df = pd.DataFrame(rows, columns=["ID", "姓名", "作业是否检查"])
+    df = pd.DataFrame(rows, columns=["ID", "姓名", "作业是否提交"])
     return df
+
+# 未交作业查询
+def wj_query_db(shi_jian):
+    conn = sqlite3.connect('gradio_app.db')
+    cursor = conn.cursor()
+    if not shi_jian:
+        shi_jian = date.today().strftime("%Y-%m-%d")
+    sql = (
+        'SELECT id,xing_ming,"未交" FROM xuesheng '
+        'WHERE id not in (SELECT xue_hao FROM zuoye WHERE shi_jian = ?)'
+    )
+
+    cursor.execute(sql, (shi_jian,))
+    rows = cursor.fetchall()
+    conn.close()
+    df = pd.DataFrame(rows, columns=["ID", "姓名", "作业是否提交"])
+    return df
+
 
 
 def xs_save_to_db(xing_ming):
